@@ -102,12 +102,11 @@ def main():
             if len(rows) != 1 or rows[0][1] not in ('T', 't'):
                 raise RuntimeError(f'game core link has no unique strong {name}: {rows}')
             print(f'game core loader/cpatch: NDK real objects resolve one strong {name}')
-        for android_default in (False, True):
-            exe = temp / ('android-default' if android_default else 'apple-default')
-            flag = ['-DS2A_CPATCH_ANDROID_DEFAULT'] if android_default else []
-            run([*host_cc, '-std=gnu11', *flag, '-I', ROOT / 'runtime/include',
-                 ROOT / 'runtime/tests/t_cpatch.c', ROOT / 'runtime/src/cpatch.c', '-o', exe])
-            print(run([exe]).strip())
+        # 开关口径 Apple / Android 相同（#48 D2：不设 S2A_CPATCH_ON 按表缺省开），一份宿主单测覆盖目录与 APK 内存表两条装载路
+        exe = temp / 't_cpatch'
+        run([*host_cc, '-std=gnu11', '-I', ROOT / 'runtime/include',
+             ROOT / 'runtime/tests/t_cpatch.c', ROOT / 'runtime/src/cpatch.c', '-o', exe])
+        print(run([exe]).strip())
     return 0
 
 

@@ -105,7 +105,7 @@ int main(int argc,char **argv) {
             "gfx:A\tmain\t0\tother-gfx\tA\t\ta.pchtxt\t9000:00:7f\t0\ngfx:S\tsdk\t1\tother-gfx\tS\t\ts.pchtxt\t\t0\n";
         save(dir,"cpatch","tsv",table,strlen(table));
         if (!strcmp(mode,"cpatch-nul")) assets[asset_count-1].bytes[20]=0;
-        setenv("S2A_CPATCH_ON","gfx:A,gfx:S",1);   // Android 缺省全关，显式开
+        setenv("S2A_CPATCH_ON","gfx:A,gfx:S",1);   // 两份表里都是缺省关，显式开
     }
     if (!strcmp(mode,"nul-fixups")) assets[1].bytes[3]=0;
     if (!strcmp(mode,"long-fixups")) {free(assets[1].bytes);assets[1].size=300;assets[1].bytes=malloc(300);memset(assets[1].bytes,'a',300);}
