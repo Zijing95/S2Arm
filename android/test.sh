@@ -429,6 +429,9 @@ s2a_gate_step "$PY" "$repo_dir/runtime/tests/support/test_thread_verdict.py"
 ndk_cc=$(. "$android_dir/tools/ndk_toolchain.sh" && s2a_ndk_clang "$(s2a_ndk_resolve)" 29) || { echo '【红】找不到固定 NDK 29（android/tools/ndk_toolchain.sh）' >&2; exit 1; }
 s2a_gate_step "$PY" "$repo_dir/runtime/tests/support/build_pause_wait_android.py" --cc "$ndk_cc" --out "$out/pause-wait-android"
 s2a_gate_step "$PY" "$android_dir/native/runtime/fault/tests/run.py" --objects-only --cc "$ndk_cc" --out "$out/fault-objects"
+# 栈指针未对齐替做读写（runtime/src/emul_sp.c 安卓信号上下文版）：宿主没有 arm64 安卓信号上下文，只用固定 NDK 编译链接；执行在手机上（见用例文件末尾）
+s2a_gate_step "$ndk_cc" -O1 -Wall -Werror -I"$repo_dir/runtime/include" "$android_dir/tests/emul_sp_android_test.c" \
+    "$repo_dir/runtime/src/emul_sp.c" "$repo_dir/runtime/src/emul_ld.c" "$repo_dir/runtime/src/emul_st.c" -o "$out/emul-sp-android-test"
 s2a_gate_step "$PY" "$android_dir/native/runtime/platform/tests/shutdown_wait_test.py"
 s2a_gate_step "$PY" "$android_dir/native/direct-vk-tests/run_shutdown_contract.py"
 # App 纯 Java 层整体编译：抓 import 漏缺 / 签名不匹配这类编译错（#38 GameLibrary 漏 import 让 main 编不过就是这类）。
