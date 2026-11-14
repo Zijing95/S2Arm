@@ -105,6 +105,9 @@ struct PhoneOutcome: Equatable {
     var exportFolder = ""
     var exportGames = 0
     var exportBytes: Int64? = nil
+    /// 完成页「推到手机」（11-13）：推进手机上自签 S2Arm 的 .img 文件名（空 = 还没推）；推不成时作业给的一句「缺什么、怎么做」
+    var pushed: [String] = []
+    var pushNote = ""
 }
 
 /// 排队的一次出包。
@@ -886,6 +889,21 @@ public final class S2ArmLauncherModel: ObservableObject {
         // 预填好的新帖页与仓库地址由作业层给（pack/jobs/diag_upload.py issue_url，iOS 同格式）
         return DiagUploadReceipt(code: code, issueURL: (outcome.result["issueUrl"] as? String).flatMap(URL.init(string:)),
                                  repo: outcome.result["repo"] as? String ?? "github.com/jhaizhou-ops/S2Arm")
+    }
+    /// 导出完成页「推到手机」：把「S2Arm 自签导出」里的完整 .img 推进手机上自签装好的 S2Arm（exportPush 作业）；结果写回 phoneOutcome
+    @Published var exportPushing = false
+    func pushExportToPhone(gameID: String?) {
+        guard !exportPushing else { return }
+        exportPushing = true
+        Task {
+            do {
+                let names = try await provider.exportPush(gameId: gameID, device: installDeviceID)
+                phoneOutcome?.pushed = names; phoneOutcome?.pushNote = ""
+            } catch {
+                phoneOutcome?.pushNote = error.localizedDescription
+            }
+            exportPushing = false
+        }
     }
     struct UploadNoCode: LocalizedError { var errorDescription: String? { Localizer().t("s2arm.diagUpload.noCode") } }
     /// 界面语言写进作业环境：之后每个作业请求都带 uiLanguage（zh-Hans / en），作业层按它出玩家看得到的文件名与说明
